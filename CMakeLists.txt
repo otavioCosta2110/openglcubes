@@ -5,7 +5,7 @@ project(CG_ProjTerreno)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_executable(CG_ProjTerreno "main.cpp")
+add_executable(CG_ProjTerreno "src/main.cpp")
 
 add_subdirectory(deps/glfw)
 
