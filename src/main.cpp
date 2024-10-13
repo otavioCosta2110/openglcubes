@@ -3,6 +3,8 @@
  * plano no plano XZ, e a câmera está posicionada acima e atrás do terreno,
  * olhando para o centro.*/
 
+#include "init.cpp"
+#include "utils.cpp"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <array>
@@ -13,23 +15,14 @@
 #include <iostream>
 #include <vector>
 
-// Mudei o tamanho pra ver melhor as esferas
-const unsigned int WIDTH = 1600;
-const unsigned int HEIGHT = 800;
 void criarEsfera(float radius, int sectors, int stacks,
                  std::vector<float> &vertices,
                  std::vector<unsigned int> &indices, const glm::vec3 &color);
 
-// Função de callback para redimensionamento da janela
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(0, 0, width, height);
-}
-
-// Função para processar entrada do usuário
-void processInput(GLFWwindow *window) {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
-}
+void renderizarEsfera(unsigned int &sphereVAO, unsigned int &sphereVBO,
+                      unsigned int &sphereEBO,
+                      const std::vector<float> &sphereVertices,
+                      const std::vector<unsigned int> &sphereIndices);
 
 int main() {
   // Inicialização do GLFW
@@ -84,6 +77,7 @@ void main() {
     FragColor = vec4(ourColor, 1.0);
 }
 )";
+
   // Compilação e link dos shaders
   unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
   glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -146,20 +140,10 @@ void main() {
   // Configuração da matriz de modelo
   glm::mat4 model = glm::mat4(1.0f);
 
-  // Habilitação do teste de profundidade
-  glEnable(GL_DEPTH_TEST);
-  //
-  // criarEsfera(1.0f, 30, 30, sphereVertices, sphereIndices);
-
   int num_esferas = 5;
 
   std::vector<std::vector<float>> sphereVerticesList(num_esferas);
   std::vector<std::vector<unsigned int>> sphereIndicesList(num_esferas);
-
-  std::vector<glm::vec3> esferaPosicoes = {
-      glm::vec3(6.0f, 2.0f, -1.0f), glm::vec3(1.0f, 1.0f, 2.0f),
-      glm::vec3(-3.0f, 4.0f, 2.0f), glm::vec3(3.0f, 3.0f, 4.0f),
-      glm::vec3(-5.0f, 2.0f, 5.0f)};
 
   std::array<glm::vec3, 5> esferaCores = {
       glm::vec3(1.0f, 0.0f, 0.0f), // Vermelho
@@ -167,6 +151,13 @@ void main() {
       glm::vec3(0.0f, 0.0f, 1.0f), // Azul
       glm::vec3(1.0f, 1.0f, 0.0f), // Amarelo
       glm::vec3(1.0f, 0.5f, 0.0f)  // Laranja
+  };
+  std::vector<glm::vec3> esferaPosicoes = {
+      glm::vec3(9.0f, 2.0f, -1.0f), // Vermelho
+      glm::vec3(-1.0f, 0.6f, 2.0f), // Verde
+      glm::vec3(-3.0f, 4.0f, 2.0f), // Azul
+      glm::vec3(2.0f, 3.0f, 4.0f),  // Amarelo
+      glm::vec3(-5.0f, 2.0f, 5.0f), // Laranja
   };
 
   std::vector<float> esferaTamanhos = {
@@ -182,7 +173,8 @@ void main() {
     std::vector<float> sphereVertices;
     std::vector<unsigned int> sphereIndices;
 
-    criarEsfera(esferaTamanhos[i], 30, 30, sphereVertices, sphereIndices, esferaCores[i]);
+    criarEsfera(esferaTamanhos[i], 30, 30, sphereVertices, sphereIndices,
+                esferaCores[i]);
 
     sphereVerticesList[i] = std::move(sphereVertices);
     sphereIndicesList[i] = std::move(sphereIndices);
@@ -196,43 +188,8 @@ void main() {
   std::vector<unsigned int> sphereEBOs(num_esferas);
 
   for (int i = 0; i < num_esferas; ++i) {
-    glGenVertexArrays(1, &sphereVAOs[i]);
-    glGenBuffers(1, &sphereVBOs[i]);
-    glGenBuffers(1, &sphereEBOs[i]);
-
-    glBindVertexArray(sphereVAOs[i]);
-
-    // Set vertex attributes for each sphere
-    glBindBuffer(GL_ARRAY_BUFFER, sphereVBOs[i]);
-    glBufferData(GL_ARRAY_BUFFER, sphereVerticesList[i].size() * sizeof(float),
-                 sphereVerticesList[i].data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBOs[i]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 sphereIndicesList[i].size() * sizeof(unsigned int),
-                 sphereIndicesList[i].data(), GL_STATIC_DRAW);
-
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
-                          (void *)0);
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
-                          (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // Normal attribute
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
-                          (void *)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-
-    // Texture coordinate attribute (if needed)
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
-                          (void *)(9 * sizeof(float)));
-    glEnableVertexAttribArray(3);
-
-    glBindVertexArray(0); // Unbind the VAO
+    renderizarEsfera(sphereVAOs[i], sphereVBOs[i], sphereEBOs[i],
+                     sphereVerticesList[i], sphereIndicesList[i]);
   }
 
   // Loop principal
@@ -284,67 +241,4 @@ void main() {
   }
 
   return 0;
-}
-
-void criarEsfera(float radius, int sectors, int stacks,
-                 std::vector<float> &vertices,
-                 std::vector<unsigned int> &indices, const glm::vec3 &color) {
-  float x, y, z, xy;
-  float nx, ny, nz, lengthInv = 1.0f / radius;
-  float s, t;
-
-  float sectorStep = 2 * M_PI / sectors;
-  float stackStep = M_PI / stacks;
-  float sectorAngle, stackAngle;
-
-  for (int i = 0; i <= stacks; ++i) {
-    stackAngle = M_PI / 2 - i * stackStep;
-    xy = radius * cosf(stackAngle);
-    z = radius * sinf(stackAngle);
-
-    for (int j = 0; j <= sectors; ++j) {
-      sectorAngle = j * sectorStep;
-
-      x = xy * cosf(sectorAngle);
-      y = xy * sinf(sectorAngle);
-      vertices.push_back(x);
-      vertices.push_back(y);
-      vertices.push_back(z);
-
-      // Push color
-      vertices.push_back(color.r);
-      vertices.push_back(color.g);
-      vertices.push_back(color.b);
-
-      // Push normal
-      vertices.push_back(nx);
-      vertices.push_back(ny);
-      vertices.push_back(nz);
-
-      // Texture coordinates
-      s = (float)j / sectors;
-      t = (float)i / stacks;
-      vertices.push_back(s);
-      vertices.push_back(t);
-    }
-  }
-
-  unsigned int k1, k2;
-  for (int i = 0; i < stacks; ++i) {
-    k1 = i * (sectors + 1);
-    k2 = k1 + sectors + 1;
-
-    for (int j = 0; j < sectors; ++j, ++k1, ++k2) {
-      if (i != 0) {
-        indices.push_back(k1);
-        indices.push_back(k2);
-        indices.push_back(k1 + 1);
-      }
-      if (i != (stacks - 1)) {
-        indices.push_back(k2);
-        indices.push_back(k2 + 1);
-        indices.push_back(k1 + 1);
-      }
-    }
-  }
 }
