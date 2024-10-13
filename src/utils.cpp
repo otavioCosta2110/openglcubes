@@ -1,11 +1,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <array>
 #include <cstdio>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <iostream>
 #include <vector>
 
 void criarEsfera(float radius, int sectors, int stacks,
@@ -33,17 +31,14 @@ void criarEsfera(float radius, int sectors, int stacks,
       vertices.push_back(y);
       vertices.push_back(z);
 
-      // Push color
       vertices.push_back(color.r);
       vertices.push_back(color.g);
       vertices.push_back(color.b);
 
-      // Push normal
       vertices.push_back(nx);
       vertices.push_back(ny);
       vertices.push_back(nz);
 
-      // Texture coordinates
       s = (float)j / sectors;
       t = (float)i / stacks;
       vertices.push_back(s);
@@ -81,33 +76,30 @@ void renderizarEsfera(unsigned int &sphereVAO, unsigned int &sphereVBO,
 
   glBindVertexArray(sphereVAO);
 
-  // Bind and set the vertex buffer
   glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
   glBufferData(GL_ARRAY_BUFFER, sphereVertices.size() * sizeof(float),
                sphereVertices.data(), GL_STATIC_DRAW);
 
-  // Bind and set the element buffer
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                sphereIndices.size() * sizeof(unsigned int),
                sphereIndices.data(), GL_STATIC_DRAW);
 
-  // Set the vertex attribute pointers
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
                         (void *)0);
-  glEnableVertexAttribArray(0); // Position attribute
+  glEnableVertexAttribArray(0);
 
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
                         (void *)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1); // Color attribute
+  glEnableVertexAttribArray(1);
 
   glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
                         (void *)(6 * sizeof(float)));
-  glEnableVertexAttribArray(2); // Normal attribute
+  glEnableVertexAttribArray(2);
 
   glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
                         (void *)(9 * sizeof(float)));
-  glEnableVertexAttribArray(3); // Texture coordinates
+  glEnableVertexAttribArray(3);
 
   glBindVertexArray(0);
 }
