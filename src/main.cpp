@@ -15,14 +15,13 @@
 #include <iostream>
 #include <vector>
 
-void criarEsfera(float radius, int sectors, int stacks,
-                 std::vector<float> &vertices,
-                 std::vector<unsigned int> &indices, const glm::vec3 &color);
+void criarCubo(float tamanho, std::vector<float> &vertices,
+               std::vector<unsigned int> &indices, const glm::vec3 &color);
 
-void renderizarEsfera(unsigned int &sphereVAO, unsigned int &sphereVBO,
-                      unsigned int &sphereEBO,
-                      const std::vector<float> &sphereVertices,
-                      const std::vector<unsigned int> &sphereIndices);
+void renderizarCubo(unsigned int &cubeVAO, unsigned int &cubeVBO,
+                    unsigned int &cubeEBO,
+                    const std::vector<float> &cubeVertices,
+                    const std::vector<unsigned int> &cubeIndices);
 
 int main() {
   // Inicialização do GLFW
@@ -140,19 +139,19 @@ void main() {
   // Configuração da matriz de modelo
   glm::mat4 model = glm::mat4(1.0f);
 
-  int num_esferas = 5;
+  int num_cubos = 5;
+  std::vector<std::vector<float>> cuboVerticesList(num_cubos);
+  std::vector<std::vector<unsigned int>> cuboIndicesList(num_cubos);
 
-  std::vector<std::vector<float>> sphereVerticesList(num_esferas);
-  std::vector<std::vector<unsigned int>> sphereIndicesList(num_esferas);
-
-  std::array<glm::vec3, 5> esferaCores = {
+  std::array<glm::vec3, 5> cuboCores = {
       glm::vec3(1.0f, 0.0f, 0.0f), // Vermelho
       glm::vec3(0.0f, 1.0f, 0.0f), // Verde
       glm::vec3(0.0f, 0.0f, 1.0f), // Azul
       glm::vec3(1.0f, 1.0f, 0.0f), // Amarelo
       glm::vec3(1.0f, 0.5f, 0.0f)  // Laranja
   };
-  std::vector<glm::vec3> esferaPosicoes = {
+
+  std::vector<glm::vec3> cuboPosicoes = {
       glm::vec3(9.0f, 2.0f, -1.0f), // Vermelho
       glm::vec3(-1.0f, 0.6f, 2.0f), // Verde
       glm::vec3(-3.0f, 4.0f, 2.0f), // Azul
@@ -160,72 +159,68 @@ void main() {
       glm::vec3(-5.0f, 2.0f, 5.0f), // Laranja
   };
 
-  std::vector<float> esferaTamanhos = {
-      1.0f, // Tamanho da esfera Vermelha
-      1.5f, // Tamanho da esfera Verde
-      0.5f, // Tamanho da esfera Azul
-      2.0f, // Tamanho da esfera Amarela
-      1.2f  // Tamanho da esfera Laranja
+  std::vector<float> cuboTamanhos = {
+      1.0f, // Tamanho do cubo Vermelho
+      1.5f, // Tamanho do cubo Verde
+      0.5f, // Tamanho do cubo Azul
+      2.0f, // Tamanho do cubo Amarelo
+      1.2f  // Tamanho do cubo Laranja
   };
 
-  // Criação das esferas
-  for (int i = 0; i < num_esferas; ++i) {
-    std::vector<float> sphereVertices;
-    std::vector<unsigned int> sphereIndices;
+  for (int i = 0; i < num_cubos; ++i) {
+    std::vector<float> cuboVertices;
+    std::vector<unsigned int> cuboIndices;
 
-    criarEsfera(esferaTamanhos[i], 30, 30, sphereVertices, sphereIndices,
-                esferaCores[i]);
+    criarCubo(cuboTamanhos[i], cuboVertices, cuboIndices, cuboCores[i]);
 
-    sphereVerticesList[i] = std::move(sphereVertices);
-    sphereIndicesList[i] = std::move(sphereIndices);
+    cuboVerticesList[i] = std::move(cuboVertices);
+    cuboIndicesList[i] = std::move(cuboIndices);
   }
 
-  // Vetores de VAOs, VBOs e EBOs para as esferas
-  // Precisa disso pra renderizar cada esfera individualmente, ai da pra colocar
-  // cor, tamanho, etc
-  std::vector<unsigned int> sphereVAOs(num_esferas);
-  std::vector<unsigned int> sphereVBOs(num_esferas);
-  std::vector<unsigned int> sphereEBOs(num_esferas);
+  std::vector<unsigned int> cuboVAOs(num_cubos);
+  std::vector<unsigned int> cuboVBOs(num_cubos);
+  std::vector<unsigned int> cuboEBOs(num_cubos);
 
-  for (int i = 0; i < num_esferas; ++i) {
-    renderizarEsfera(sphereVAOs[i], sphereVBOs[i], sphereEBOs[i],
-                     sphereVerticesList[i], sphereIndicesList[i]);
+  for (int i = 0; i < num_cubos; ++i) {
+    renderizarCubo(cuboVAOs[i], cuboVBOs[i], cuboEBOs[i], cuboVerticesList[i],
+                     cuboIndicesList[i]);
   }
 
   // Loop principal
-  while (!glfwWindowShouldClose(window)) {
-    processInput(window);
+while (!glfwWindowShouldClose(window)) {
+        processInput(window);
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(shaderProgram);
+        glUseProgram(shaderProgram);
 
-    unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
-    unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
-    unsigned int projectionLoc =
-        glGetUniformLocation(shaderProgram, "projection");
+        unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
+        unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
+        unsigned int projectionLoc =
+            glGetUniformLocation(shaderProgram, "projection");
 
-    // Renderiza o terreno
-    glBindVertexArray(VAO);
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(VAO);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
+                           glm::value_ptr(glm::mat4(1.0f)));
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE,
+                           glm::value_ptr(projection));
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
-    for (int i = 0; i < num_esferas; ++i) {
-      glm::mat4 sphereModel = glm::mat4(1.0f);
-      sphereModel = glm::translate(sphereModel, esferaPosicoes[i]);
-      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(sphereModel));
+        for (int i = 0; i < num_cubos; ++i) {
+            glm::mat4 cuboModel = glm::mat4(1.0f);
+            cuboModel = glm::translate(cuboModel, cuboPosicoes[i]);
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cuboModel));
 
-      glBindVertexArray(sphereVAOs[i]);
-      glDrawElements(GL_TRIANGLES, sphereIndicesList[i].size(), GL_UNSIGNED_INT,
-                     0);
+            glBindVertexArray(cuboVAOs[i]);
+            glDrawElements(GL_TRIANGLES, cuboIndicesList[i].size(),
+                           GL_UNSIGNED_INT, 0);
+        }
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
 
   // Limpeza e encerramento
   glfwTerminate();
@@ -234,10 +229,10 @@ void main() {
   glDeleteBuffers(1, &VBO);
   glDeleteBuffers(1, &EBO);
 
-  for (int i = 0; i < num_esferas; i++) {
-    glDeleteVertexArrays(1, &sphereVAOs[i]);
-    glDeleteBuffers(1, &sphereVBOs[i]);
-    glDeleteBuffers(1, &sphereEBOs[i]);
+  for (int i = 0; i < num_cubos; i++) {
+    glDeleteVertexArrays(1, &cuboVAOs[i]);
+    glDeleteBuffers(1, &cuboVBOs[i]);
+    glDeleteBuffers(1, &cuboEBOs[i]);
   }
 
   return 0;

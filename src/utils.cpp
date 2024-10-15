@@ -6,100 +6,73 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 
-void criarEsfera(float radius, int sectors, int stacks,
-                 std::vector<float> &vertices,
-                 std::vector<unsigned int> &indices, const glm::vec3 &color) {
-  float x, y, z, xy;
-  float nx, ny, nz, lengthInv = 1.0f / radius;
-  float s, t;
+void criarCubo(float tamanho, std::vector<float> &vertices, std::vector<unsigned int> &indices, const glm::vec3 &color) {
+    float metade = tamanho / 2.0f;
 
-  float sectorStep = 2 * M_PI / sectors;
-  float stackStep = M_PI / stacks;
-  float sectorAngle, stackAngle;
+    vertices = {
+        // Posições           // Cores
+        // Frente
+        -metade, -metade,  metade, color.r, color.g, color.b,
+         metade, -metade,  metade, color.r, color.g, color.b,
+         metade,  metade,  metade, color.r, color.g, color.b,
+        -metade,  metade,  metade, color.r, color.g, color.b,
 
-  for (int i = 0; i <= stacks; ++i) {
-    stackAngle = M_PI / 2 - i * stackStep;
-    xy = radius * cosf(stackAngle);
-    z = radius * sinf(stackAngle);
+        // Trás
+        -metade, -metade, -metade, color.r, color.g, color.b,
+         metade, -metade, -metade, color.r, color.g, color.b,
+         metade,  metade, -metade, color.r, color.g, color.b,
+        -metade,  metade, -metade, color.r, color.g, color.b,
+    };
 
-    for (int j = 0; j <= sectors; ++j) {
-      sectorAngle = j * sectorStep;
-
-      x = xy * cosf(sectorAngle);
-      y = xy * sinf(sectorAngle);
-      vertices.push_back(x);
-      vertices.push_back(y);
-      vertices.push_back(z);
-
-      vertices.push_back(color.r);
-      vertices.push_back(color.g);
-      vertices.push_back(color.b);
-
-      vertices.push_back(nx);
-      vertices.push_back(ny);
-      vertices.push_back(nz);
-
-      s = (float)j / sectors;
-      t = (float)i / stacks;
-      vertices.push_back(s);
-      vertices.push_back(t);
-    }
-  }
-
-  unsigned int k1, k2;
-  for (int i = 0; i < stacks; ++i) {
-    k1 = i * (sectors + 1);
-    k2 = k1 + sectors + 1;
-
-    for (int j = 0; j < sectors; ++j, ++k1, ++k2) {
-      if (i != 0) {
-        indices.push_back(k1);
-        indices.push_back(k2);
-        indices.push_back(k1 + 1);
-      }
-      if (i != (stacks - 1)) {
-        indices.push_back(k2);
-        indices.push_back(k2 + 1);
-        indices.push_back(k1 + 1);
-      }
-    }
-  }
+    indices = {
+        // Frente
+        0, 1, 2, 2, 3, 0,
+        // Trás
+        4, 5, 6, 6, 7, 4,
+        // Esquerda
+        0, 3, 7, 7, 4, 0,
+        // Direita
+        1, 5, 6, 6, 2, 1,
+        // Topo
+        3, 2, 6, 6, 7, 3,
+        // Base
+        0, 1, 5, 5, 4, 0,
+    };
 }
 
-void renderizarEsfera(unsigned int &sphereVAO, unsigned int &sphereVBO,
-                      unsigned int &sphereEBO,
-                      const std::vector<float> &sphereVertices,
-                      const std::vector<unsigned int> &sphereIndices) {
-  glGenVertexArrays(1, &sphereVAO);
-  glGenBuffers(1, &sphereVBO);
-  glGenBuffers(1, &sphereEBO);
+void renderizarCubo(unsigned int &cubeVAO, unsigned int &cubeVBO,
+                    unsigned int &cubeEBO,
+                    const std::vector<float> &cubeVertices,
+                    const std::vector<unsigned int> &cubeIndices) {
+  // Gerar VAO, VBO e EBO para o cubo
+  glGenVertexArrays(1, &cubeVAO);
+  glGenBuffers(1, &cubeVBO);
+  glGenBuffers(1, &cubeEBO);
 
-  glBindVertexArray(sphereVAO);
+  // Ligar o VAO do cubo
+  glBindVertexArray(cubeVAO);
 
-  glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
-  glBufferData(GL_ARRAY_BUFFER, sphereVertices.size() * sizeof(float),
-               sphereVertices.data(), GL_STATIC_DRAW);
+  // Ligar e enviar dados de vértices para o VBO
+  glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+  glBufferData(GL_ARRAY_BUFFER, cubeVertices.size() * sizeof(float),
+               cubeVertices.data(), GL_STATIC_DRAW);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBO);
+  // Ligar e enviar dados de índices para o EBO
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeEBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-               sphereIndices.size() * sizeof(unsigned int),
-               sphereIndices.data(), GL_STATIC_DRAW);
+               cubeIndices.size() * sizeof(unsigned int),
+               cubeIndices.data(), GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
-                        (void *)0);
+  // Atributo de posição (3 floats)
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
+  // Atributo de cor (3 floats)
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),
                         (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
 
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
-                        (void *)(6 * sizeof(float)));
-  glEnableVertexAttribArray(2);
-
-  glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float),
-                        (void *)(9 * sizeof(float)));
-  glEnableVertexAttribArray(3);
-
+  // Desligar o VAO
   glBindVertexArray(0);
 }
+
