@@ -183,44 +183,42 @@ void main() {
 
   for (int i = 0; i < num_cubos; ++i) {
     renderizarCubo(cuboVAOs[i], cuboVBOs[i], cuboEBOs[i], cuboVerticesList[i],
-                     cuboIndicesList[i]);
+                   cuboIndicesList[i]);
   }
 
   // Loop principal
-while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+  while (!glfwWindowShouldClose(window)) {
+    processInput(window);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+    glUseProgram(shaderProgram);
 
-        unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
-        unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
-        unsigned int projectionLoc =
-            glGetUniformLocation(shaderProgram, "projection");
+    unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
+    unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
+    unsigned int projectionLoc =
+        glGetUniformLocation(shaderProgram, "projection");
 
-        glBindVertexArray(VAO);
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE,
-                           glm::value_ptr(glm::mat4(1.0f)));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projectionLoc, 1, GL_FALSE,
-                           glm::value_ptr(projection));
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(VAO);
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 
-        for (int i = 0; i < num_cubos; ++i) {
-            glm::mat4 cuboModel = glm::mat4(1.0f);
-            cuboModel = glm::translate(cuboModel, cuboPosicoes[i]);
-            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cuboModel));
+    for (int i = 0; i < num_cubos; ++i) {
+      glm::mat4 cuboModel = glm::mat4(1.0f);
+      cuboModel = glm::translate(cuboModel, cuboPosicoes[i]);
+      glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(cuboModel));
 
-            glBindVertexArray(cuboVAOs[i]);
-            glDrawElements(GL_TRIANGLES, cuboIndicesList[i].size(),
-                           GL_UNSIGNED_INT, 0);
-        }
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+      glBindVertexArray(cuboVAOs[i]);
+      glDrawElements(GL_TRIANGLES, cuboIndicesList[i].size(), GL_UNSIGNED_INT,
+                     0);
     }
+
+    glfwSwapBuffers(window);
+    glfwPollEvents();
+  }
 
   // Limpeza e encerramento
   glfwTerminate();
